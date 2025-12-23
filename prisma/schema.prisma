@@ -1,0 +1,77 @@
+﻿generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum DeviceType {
+  cli
+  web
+  mobile
+}
+
+model User {
+  id            String          @id @default(uuid())
+  username      String          @unique
+  email         String          @unique
+  passwordHash  String
+  role          Role            @default(user)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  refreshTokens RefreshToken[]
+  devices       Device[]
+  auditLogs     AuditLog[]
+}
+
+model Device {
+  id            String          @id @default(uuid())
+  userId        String
+  type          DeviceType
+  name          String
+  lastSeenAt    DateTime
+  createdAt     DateTime        @default(now())
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokens RefreshToken[]
+
+  @@index([userId])
+}
+
+model RefreshToken {
+  id           String       @id @default(uuid())
+  userId       String
+  tokenHash    String
+  deviceId     String?
+  createdAt    DateTime     @default(now())
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  replacedById String?
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device       Device?      @relation(fields: [deviceId], references: [id])
+  replacedBy   RefreshToken? @relation("RefreshTokenReplacedBy", fields: [replacedById], references: [id])
+  replacements RefreshToken[] @relation("RefreshTokenReplacedBy")
+
+  @@index([userId])
+  @@index([deviceId])
+  @@index([replacedById])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  event     String
+  ip        String
+  userAgent String
+  meta      Json?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+}
