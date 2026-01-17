@@ -12,11 +12,19 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/server.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@types/node": "^22.10.2",
     "typescript": "^5.5.4",
     "vitest": "^1.6.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.2",
+    "dotenv": "^17.2.3",
+    "fastify": "^4.28.1",
+    "prisma": "^6.19.2"
   }
 }
